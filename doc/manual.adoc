@@ -1641,8 +1641,8 @@ This is not supported by ccache.
 Preprocessing the source code using the compiler's `-E` option failed.
 
 | Unsupported code directive |
-Code like the assembler `.incbin` directive was found. This is not supported
-by ccache.
+Code like the assembler `.incbin` directive or the MSVC C++/CLI `#using`
+directive was found. This is not supported by ccache.
 
 | Unsupported compiler option |
 A compiler option not supported by ccache was found.
