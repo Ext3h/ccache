@@ -885,6 +885,25 @@ TEST_CASE("MSVC options"
   CHECK(result->compiler_args.to_string() == "cl.exe /foobar /c");
 }
 
+TEST_CASE("MSVC /external:env:")
+{
+  TestContext test_context;
+  Context ctx;
+  ctx.config.set_compiler_type(CompilerType::msvc);
+  REQUIRE(util::write_file("foo.c", ""));
+
+  ctx.orig_args =
+    Args::from_string("cl.exe /c foo.c /external:env:FOO -external:env:BAR");
+  const auto result = process_args(ctx);
+  REQUIRE(result);
+  CHECK(ctx.args_info.msvc_external_env_vars
+        == std::vector<std::string>{"FOO", "BAR"});
+  CHECK(result->preprocessor_args.to_string()
+        == "cl.exe /external:env:FOO -external:env:BAR");
+  CHECK(result->compiler_args.to_string()
+        == "cl.exe /external:env:FOO -external:env:BAR /c");
+}
+
 TEST_CASE("MSVC /experimental:log")
 {
   TestContext test_context;

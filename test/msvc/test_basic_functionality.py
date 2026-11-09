@@ -53,6 +53,29 @@ def test_header_change_is_miss(ccache_test):
     assert stats_2["total_hit"] == 0
 
 
+def test_external_env_change_is_miss(ccache_test):
+    for name, value in (("a", 1), ("b", 2)):
+        (ccache_test.workdir / name).mkdir()
+        header = ccache_test.workdir / name / "ext.h"
+        header.write_text(f"#define VALUE {value}\n")
+    source = ccache_test.workdir / "test.c"
+    source.write_text("#include <ext.h>\nint x = VALUE;\n")
+    # cl ignores /external:env: without /external:W.
+    args = ["/c", "/external:W0", "/external:env:MY_EXT_INCLUDE", "test.c"]
+
+    ccache_test.env["MY_EXT_INCLUDE"] = str(ccache_test.workdir / "a")
+    ccache_test.compile(args)
+    stats_1 = ccache_test.stats()
+    assert stats_1["miss"] == 1
+    assert stats_1["total_hit"] == 0
+
+    ccache_test.env["MY_EXT_INCLUDE"] = str(ccache_test.workdir / "b")
+    ccache_test.compile(args)
+    stats_2 = ccache_test.stats()
+    assert stats_2["miss"] == 2
+    assert stats_2["total_hit"] == 0
+
+
 def test_basedir_normalizes_paths(ccache_test):
     ccache_test.env["CCACHE_NOHASHDIR"] = "1"
     ccache_test.env["CCACHE_BASEDIR"] = str(ccache_test.workdir)

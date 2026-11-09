@@ -176,6 +176,9 @@ struct ArgsInfo
   // Values for -Xarch_* options.
   std::unordered_map<std::string, std::vector<std::string>> xarch_args;
 
+  // Environment variables named by MSVC /external:env: options.
+  std::vector<std::string> msvc_external_env_vars;
+
   // Relocating debuginfo in the format old=new.
   std::vector<std::string> debug_prefix_maps;
 

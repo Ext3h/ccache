@@ -1630,6 +1630,15 @@ process_option_arg(const Context& ctx,
     return Statistic::none;
   }
 
+  // MSVC /external:env:VAR adds the directories listed in environment variable
+  // VAR as external include directories, so the value of VAR must be hashed in
+  // direct mode just like INCLUDE and EXTERNAL_INCLUDE.
+  if (config.is_compiler_group_msvc() && arg.starts_with("-external:env:")) {
+    args_info.msvc_external_env_vars.push_back(arg.substr(14));
+    state.add_common_arg(args[i]);
+    return Statistic::none;
+  }
+
   if (config.is_compiler_group_msvc() && arg.starts_with("-FI")
       && !ctx.config.base_dirs().empty()) {
     // /FI is special in that the compiler looks up a relative file relative to

@@ -2422,6 +2422,13 @@ get_manifest_key(Context& ctx, Hash& hash)
       hash.hash(v);
     }
   }
+  for (const auto& name : ctx.args_info.msvc_external_env_vars) {
+    const char* v = getenv(name.c_str());
+    if (v) {
+      hash.hash_delimiter("external:env");
+      hash.hash(v);
+    }
+  }
 
   // Make sure that the direct mode hash is unique for the input file path. If
   // this would not be the case:
