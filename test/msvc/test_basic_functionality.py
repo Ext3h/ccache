@@ -15,8 +15,8 @@ def test_basic_compilation(ccache_test):
 
     ccache_test.compile(["/c", "test.c"])
     stats_2 = ccache_test.stats()
-    assert stats_2["miss"] == 1
-    assert stats_2["total_hit"] == 2
+    assert stats_2["miss"] == 2
+    assert stats_2["total_hit"] == 1
     assert (ccache_test.workdir / "test.obj").exists()
 
 
@@ -72,3 +72,24 @@ def test_basedir_normalizes_paths(ccache_test):
     stats_2 = ccache_test.stats()
     assert stats_2["miss"] == 1
     assert stats_2["total_hit"] == 1
+
+
+def test_object_path_is_hashed(ccache_test):
+    # The object file contains its own absolute path (S_OBJNAME).
+    (ccache_test.workdir / "test.c").write_text("int x;\n")
+    (ccache_test.workdir / "obj1").mkdir()
+    (ccache_test.workdir / "obj2").mkdir()
+
+    def compile_and_check(fo, miss, hit):
+        ccache_test.compile(["/c", "test.c", f"/Fo{fo}"])
+        stats = ccache_test.stats()
+        assert (stats["miss"], stats["total_hit"]) == (miss, hit), fo
+
+    compile_and_check("a.obj", 1, 0)
+    compile_and_check("b.obj", 2, 0)
+    compile_and_check("obj1\\", 3, 0)
+    compile_and_check("obj2\\", 4, 0)
+    # Other spellings of an already compiled object path.
+    compile_and_check(".\\obj1\\test.obj", 4, 1)
+    compile_and_check("obj2/test.obj", 4, 2)
+    compile_and_check(ccache_test.workdir / "a.obj", 4, 3)

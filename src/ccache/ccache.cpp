@@ -1825,16 +1825,15 @@ hash_common_info(const Context& ctx, const util::Args& args, Hash& hash)
     hash.hash(dir_to_hash);
   }
 
-  // The object file produced by MSVC includes the full path to the source file
-  // even without debug flags. Hashing the directory should be enough since the
-  // filename is included in the hash anyway.
+  // The object file produced by MSVC includes its own absolute path even
+  // without debug flags. cl makes the /Fo path absolute and normalizes it, so
+  // hash it the same way.
   if (ctx.config.is_compiler_group_msvc() && ctx.config.hash_dir()) {
-    const fs::path& output_obj_dir = ctx.args_info.output_obj.is_absolute()
-                                       ? ctx.args_info.output_obj.parent_path()
-                                       : ctx.actual_cwd;
-    LOG("Hashing object file directory {}", output_obj_dir);
-    hash.hash_delimiter("source path");
-    hash.hash(output_obj_dir);
+    const fs::path output_obj_path =
+      (ctx.actual_cwd / ctx.args_info.output_obj).lexically_normal();
+    LOG("Hashing object file path {}", output_obj_path);
+    hash.hash_delimiter("object file path");
+    hash.hash(output_obj_path);
   }
 
   if (ctx.args_info.seen_split_dwarf) {
