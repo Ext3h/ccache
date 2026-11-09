@@ -724,6 +724,15 @@ process_option_arg(const Context& ctx,
     return Statistic::unsupported_compiler_option;
   }
 
+  // MSVC /B1, /B2 and /Bx replace a compiler pass with the given DLL or
+  // executable, which is not hashed. The path can be separate or concatenated.
+  if (config.compiler_type() == CompilerType::msvc
+      && (arg.starts_with("-B1") || arg.starts_with("-B2")
+          || arg.starts_with("-Bx"))) {
+    LOG("Compiler option {} is unsupported", args[i]);
+    return Statistic::unsupported_compiler_option;
+  }
+
   // These are too hard in direct mode.
   if (config.direct_mode() && compopt_too_hard_for_direct_mode(arg)) {
     LOG("Unsupported compiler option for direct mode: {}", args[i]);

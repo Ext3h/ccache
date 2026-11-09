@@ -885,6 +885,28 @@ TEST_CASE("MSVC options"
   CHECK(result->compiler_args.to_string() == "cl.exe /foobar /c");
 }
 
+TEST_CASE("MSVC alternate compiler pass options are too hard")
+{
+  TestContext test_context;
+  Context ctx;
+  ctx.config.set_compiler_type(CompilerType::msvc);
+  REQUIRE(util::write_file("foo.c", ""));
+
+  for (const std::string option : {"/B1", "/B2", "/Bx", "-B1", "-B2", "-Bx"}) {
+    CAPTURE(option);
+
+    ctx.orig_args = Args{"cl.exe", option, "pass.dll", "/c", "foo.c"};
+    auto result = process_args(ctx);
+    REQUIRE(!result);
+    CHECK(result.error() == Statistic::unsupported_compiler_option);
+
+    ctx.orig_args = Args{"cl.exe", FMT("{}pass.dll", option), "/c", "foo.c"};
+    result = process_args(ctx);
+    REQUIRE(!result);
+    CHECK(result.error() == Statistic::unsupported_compiler_option);
+  }
+}
+
 TEST_CASE("MSVC /experimental:log")
 {
   TestContext test_context;
