@@ -1912,6 +1912,11 @@ process_args(Context& ctx)
     return tl::unexpected(Statistic::unsupported_compiler_option);
   }
 
+  if (!state.last_seen_msvc_z_debug_option.empty()) {
+    // /Z7 makes cl embed the CWD in the object file.
+    args_info.generating_debuginfo = true;
+  }
+
   // Special case: rewrite /FI arguments relative to the input file.
   if (state.rewrite_FI_args) {
     auto r = fs::canonical(args_info.input_file);

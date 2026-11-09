@@ -1419,6 +1419,7 @@ TEST_CASE("MSVC debug information format options")
     REQUIRE(result);
     CHECK(result->preprocessor_args.to_string() == "cl.exe /Z7");
     CHECK(result->compiler_args.to_string() == "cl.exe /Z7 /c");
+    CHECK(ctx.args_info.generating_debuginfo);
   }
 
   SUBCASE("Only /Zi")
@@ -1449,6 +1450,7 @@ TEST_CASE("MSVC debug information format options")
     REQUIRE(result);
     CHECK(result->preprocessor_args.to_string() == "cl.exe /Zi /Z7");
     CHECK(result->compiler_args.to_string() == "cl.exe /Zi /Z7 /c");
+    CHECK(ctx.args_info.generating_debuginfo);
   }
 }
 

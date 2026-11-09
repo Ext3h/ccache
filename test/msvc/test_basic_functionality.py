@@ -72,3 +72,23 @@ def test_basedir_normalizes_paths(ccache_test):
     stats_2 = ccache_test.stats()
     assert stats_2["miss"] == 1
     assert stats_2["total_hit"] == 1
+
+
+def test_z7_with_absolute_output_hashes_cwd(ccache_test):
+    # With /Z7, cl embeds the CWD in the object file, so a result must not be
+    # shared between different CWDs even if the source and object file paths
+    # are the same.
+    source = ccache_test.workdir / "src" / "test.c"
+    source.parent.mkdir()
+    source.write_text("int x;\n")
+    obj = ccache_test.workdir / "out" / "test.obj"
+    obj.parent.mkdir()
+
+    for i, name in enumerate(["dir1", "dir2"], start=1):
+        cwd = ccache_test.workdir / name
+        cwd.mkdir()
+        ccache_test.compile(["/c", "/Z7", str(source), f"/Fo{obj}"], cwd=cwd)
+        stats = ccache_test.stats()
+        assert stats["miss"] == i
+        assert stats["total_hit"] == 0
+        assert str(cwd).encode() in obj.read_bytes()

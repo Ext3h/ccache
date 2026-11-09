@@ -869,7 +869,8 @@ WARNING: Do not enable this option unless you are aware of these caveats:
 
     If true (which is the default), ccache will include the current working
     directory (CWD) in the hash that is used to distinguish two compilations
-    when generating debug info (compiler option `-g` with variations).
+    when generating debug info (compiler option `-g` with variations, or `/Z7`
+    for MSVC).
     Exception: The CWD will not be included in the hash if the
     compiler options `-fdebug-prefix-map` or `-fdebug-compilation-dir` are used
     appropriately. See also the discussion under
