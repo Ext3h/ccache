@@ -1201,6 +1201,9 @@ rewrite_stdout_from_compiler(const Context& ctx, util::Bytes&& stdout_data)
             util::replace_all(line, abs_path, util::pstr(rel_path).str());
           new_stdout_data.insert(
             new_stdout_data.end(), line_with_rel.data(), line_with_rel.size());
+        } else {
+          new_stdout_data.insert(
+            new_stdout_data.end(), line.data(), line.size());
         }
       } else {
         new_stdout_data.insert(new_stdout_data.end(), line.data(), line.size());

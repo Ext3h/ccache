@@ -72,3 +72,27 @@ def test_basedir_normalizes_paths(ccache_test):
     stats_2 = ccache_test.stats()
     assert stats_2["miss"] == 1
     assert stats_2["total_hit"] == 1
+
+
+def test_basedir_keeps_stdout_lines_without_path(ccache_test):
+    ccache_test.env["CCACHE_BASEDIR"] = str(ccache_test.workdir)
+    source = ccache_test.workdir / "test.cpp"
+    source.write_text(
+        "template <typename T> int f(T t) { return t; }\n"
+        "int g() { return f(1.5); }\n"
+    )
+    cl_args = ["/nologo", "/c", "/W4", "test.cpp"]
+
+    expected = ccache_test.run(["cl", *cl_args]).stdout
+    # cl echoes the source file name and continues the warning with "with",
+    # "[", "T=double" and "]" lines, none of which start with a path.
+    assert expected.startswith("test.cpp\n")
+    assert "T=double" in expected
+
+    result_1 = ccache_test.compile(cl_args)
+    assert ccache_test.stats()["miss"] == 1
+    assert result_1.stdout == expected
+
+    result_2 = ccache_test.compile(cl_args)
+    assert ccache_test.stats()["total_hit"] == 1
+    assert result_2.stdout == expected
